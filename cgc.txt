@@ -1,0 +1,253 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
+
+class Collection extends JFrame implements MouseListener{
+    Graphics g;
+    int x1,y1,r;
+    double coordinates[][] ;
+
+    Collection(){
+        setTitle("Collection");
+        setSize(800,800);
+        setVisible(true);
+		setLayout(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setLocationRelativeTo(null);
+		addMouseListener(this);
+        g=getGraphics();
+        coordinates = new double[3][7];         /*********/
+    }
+
+    
+
+    void DDA(int x1,int y1,int x2, int y2){
+        int dx=x2-x1;
+        int dy = y2-y1;
+
+        double step,xinc,yinc,x,y;
+
+        if(Math.abs(dx)>Math.abs(dy)){
+            step=Math.abs(dx);
+        }else{
+            step=Math.abs(dy);
+        }
+
+        xinc=dx/step;
+        yinc=dy/step;
+
+        x=x1;
+        y=y1;
+
+        g.drawLine((int)Math.round(x),(int)Math.round(y),(int)Math.round(x),(int)Math.round(y));
+
+        for(int i=0;i<=step;i++){
+            x = x + xinc;
+            y= y + yinc;
+
+            g.drawLine((int)Math.round(x),(int)Math.round(y),(int)Math.round(x),(int)Math.round(y));
+
+        }
+    }
+	
+	public void bresenhamCircle(int Xc,int Yc,int r)
+	{
+		int x=0, y=r, d=3-2*r;
+		while(x<=y)
+		{
+			plotCircle(Xc,Yc,x,y);
+			if(d<0)
+				d=d+4*x+6;
+			else
+			{
+				d=d+4*(x-y)+10;
+				y--;
+			}
+			x++;
+		}			
+	}
+	
+	public void plotCircle(int h,int k,int x,int y){
+		g.drawLine(h+x,k+y,h+x,k+y);
+		g.drawLine(h+y,k+x,h+y,k+x);
+		g.drawLine(h-y,k+x,h-y,k+x);
+		g.drawLine(h-x,k+y,h-x,k+y);
+		
+		g.drawLine(h-x,k-y,h-x,k-y);
+		g.drawLine(h-y,k-x,h-y,k-x);
+		g.drawLine(h+y,k-x,h+y,k-x);
+		g.drawLine(h+x,k-y,h+x,k-y);		
+	}
+
+    void drawObject(double[][] point){
+       // g.setColor(Color.blue);
+        DDA((int)coordinates[0][0],(int)coordinates[1][0],(int)coordinates[0][1],(int)coordinates[1][1]);
+        DDA((int)coordinates[0][1],(int)coordinates[1][1],(int)coordinates[0][2],(int)coordinates[1][2]);
+        DDA((int)coordinates[0][2],(int)coordinates[1][2],(int)coordinates[0][0],(int)coordinates[1][0]);
+		
+		
+    }
+	
+	void drawObject1(double[][] point)
+	{
+		bresenhamCircle((int)coordinates[0][3],(int)coordinates[1][3],20);
+		bresenhamCircle((int)coordinates[0][4],(int)coordinates[1][4],20);
+		bresenhamCircle((int)coordinates[0][5],(int)coordinates[1][5],20);
+		bresenhamCircle((int)coordinates[0][6],(int)coordinates[1][6],20); 
+    }
+
+    double[][] multipleMatrix(double[][] x,double[][] y){
+        double ans[][] = new double[x.length][y[0].length];
+
+        for(int i=0;i<x.length;i++){
+            for(int k=0;k<y[0].length;k++){
+                ans[i][k]=0;
+                for(int j=0;j<x[0].length;j++){
+                    ans[i][k] += x[i][j] * y[j][k]; 
+                }
+            }
+        }
+
+        return ans;
+    }
+
+    double[][] translateMatrix(double dx,double dy){
+        double a[][] = {{1,0,dx},{0,1,dy},{0,0,1}};
+        return a;
+    }
+
+    void translate(){
+        double[][] t = new double[3][3];
+        t = translateMatrix(100,100);
+
+        coordinates = multipleMatrix(t, coordinates);
+        drawObject(coordinates);
+    }
+
+    
+
+    double[][] reflectionYMatrix(){
+        double a[][] = {{-1,0,0},{0,1,0},{0,0,1}};
+        return a;
+    }
+ 
+    
+    
+    void reflectY(){
+        double[][] t1 = new double[3][3];
+        double[][] ry = new double[3][3];
+        double[][] t2 = new double[3][3];
+        double[][] tfinal = new double[3][3];
+
+        t1 = translateMatrix(-x1, 0);
+        ry =reflectionYMatrix();
+        t2 = translateMatrix(x1, 0);
+
+        tfinal = multipleMatrix(ry, t1);
+        tfinal = multipleMatrix(t2,tfinal);
+
+        coordinates = multipleMatrix(tfinal,coordinates);
+        drawObject(coordinates);
+    }
+
+    double[][] rotateMatrix(double angle){
+        double teta = Math.toRadians(angle);
+        double a[][] = {{Math.cos(teta),-1*Math.sin(teta),0},{Math.sin(teta),Math.cos(teta),0},{0,0,1}};
+        return a;
+    }
+
+    void rotate(){
+        double[][] t1 = new double[3][3];
+        double[][] ro = new double[3][3];
+        double[][] t2 = new double[3][3];
+        double[][] tfinal = new double[3][3];
+
+        t1 = translateMatrix(-x1,-y1);
+        ro = rotateMatrix(90.0);
+        t2 = translateMatrix(x1,y1);
+
+        tfinal = multipleMatrix(ro,t1);
+        tfinal = multipleMatrix(t2,tfinal);
+
+        coordinates = multipleMatrix(tfinal,coordinates);
+        drawObject(coordinates);
+
+    }
+	
+	
+
+    void Object()
+	{  //triangle
+        coordinates[0][0]=x1+50;
+        coordinates[1][0]=y1;
+        coordinates[2][0]=1;
+
+        coordinates[0][1]=x1+250;
+        coordinates[1][1]=y1;
+        coordinates[2][1]=1;
+
+        coordinates[0][2]=x1+100;
+        coordinates[1][2]=y1-50;
+        coordinates[2][2]=1;
+		
+		//Circle 
+		coordinates[0][3]=x1+270;
+        coordinates[1][3]=y1;
+        coordinates[2][3]=1;
+		
+		coordinates[0][4]=x1-270;
+        coordinates[1][4]=y1;
+        coordinates[2][4]=1;
+		
+		coordinates[0][5]=x1;
+        coordinates[1][5]=y1-270;
+        coordinates[2][5]=1;
+		
+		coordinates[0][6]=x1;
+        coordinates[1][6]=y1+270;
+        coordinates[2][6]=1;
+		
+
+        g.setColor(Color.blue);
+        drawObject(coordinates);  //triangle
+
+        rotate();
+        rotate();
+        rotate();
+        reflectY();
+        rotate();
+        rotate();
+        rotate();
+
+       drawObject1(coordinates);   //circle
+    }
+
+    
+
+
+
+    public void mouseClicked(MouseEvent me){
+        x1 = me.getX();
+        y1=me.getY();
+        Object();
+        
+    }
+    public void mousePressed(MouseEvent me){}
+    public void mouseReleased(MouseEvent me){}
+    public void mouseEntered(MouseEvent me){}
+    public void mouseExited(MouseEvent me){}
+    public void mouseDragged(MouseEvent me){}
+
+    public static void main(String[] args) {
+        Collection obj = new Collection();
+    }
+
+}
+    
+    
+    
+    
+    
+    
+
